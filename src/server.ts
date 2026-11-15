@@ -8,17 +8,17 @@ export class OkAgent extends AIChatAgent<Env> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-      // ⭐️ 换成通义千问（Qwen），这是目前 Cloudflare 上中文最流畅、最不容易复读的模型
-      model: workersai("@cf/qwen/qwen1.5-14b-chat-awq", {
+      // 换回刚才能出字的 70B 模型
+      model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
         sessionAffinity: this.sessionAffinity
       }),
-      // 温度调到极低，锁死它的发散思维
-      temperature: 0.01,
-      // 加上强硬的指令
-      system: `你是一个专业、友好的电商客服助手，名字叫小智。
-你的回答必须非常干脆、流畅。绝对、绝对不允许重复任何字词！例如：不准出现“你你好”，必须直接说“你好”。
-如果用户问发货时间，告诉他们是下午3点前付款当天发货。
-如果遇到你无法解答的问题，请回复："抱歉，这个问题我暂时无法处理，我将为您转接人工客服，请稍候。"`,
+      temperature: 0.1,
+      // ⭐️ 关键1：加频次惩罚，强迫它不准重复前面用过的词
+      frequencyPenalty: 1.0, 
+      // ⭐️ 关键2：限制采样范围，让它只选概率最高的词
+      topP: 0.9,
+      system: `你是一个电商客服助手，名字叫小智。
+请注意：说话要极度精简，绝对绝对不要重复字词！直接说“你好”，不要说“你你好”。`,
       messages: await convertToModelMessages(this.messages),
       abortSignal: options?.abortSignal
     });
