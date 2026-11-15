@@ -51,7 +51,8 @@ export class ChatAgent extends AIChatAgent<Env> {
     const workersai = createWorkersAI({ binding: this.env.AI });
 
     const result = streamText({
-      model: workersai("@cf/moonshotai/kimi-k2.7-code", {
+      // ⚠️ 这里换成了支持工具调用的最新最强模型
+      model: workersai("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
         sessionAffinity: this.sessionAffinity
       }),
       system: `You are a helpful assistant that can understand images. You can check the weather, get the user's timezone, run calculations, and schedule tasks. When users share images, describe what you see and answer questions about them.
